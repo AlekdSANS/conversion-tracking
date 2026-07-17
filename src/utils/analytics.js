@@ -124,6 +124,13 @@ export function trackFormError(formName, formLocation, errorType) {
   })
 }
 
+export function trackContactAction(contactMethod, contactLocation) {
+  return trackEvent('contact_action_click', {
+    contact_method: contactMethod,
+    contact_location: contactLocation,
+  })
+}
+
 export function trackConsentUpdate(consentSettings) {
   // Later, Google Consent Mode can be connected here before GTM tags fire.
   return trackEvent('consent_update', {

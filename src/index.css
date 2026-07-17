@@ -259,6 +259,34 @@ p {
 	padding: 24px;
 }
 
+.contact-actions {
+	margin-top: 18px;
+}
+
+.contact-actions h2 {
+	margin-bottom: 12px;
+}
+
+.contact-action-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.contact-action-list a {
+	border: 1px solid #cfe0ff;
+	border-radius: 6px;
+	padding: 10px 14px;
+	color: var(--accent);
+	background: #eef4ff;
+	font-weight: 800;
+	text-decoration: none;
+}
+
+.contact-action-list a:hover {
+	background: #e8f0fe;
+}
+
 .field {
 	display: grid;
 	gap: 7px;
