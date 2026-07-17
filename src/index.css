@@ -118,6 +118,7 @@ nav a:hover,
 .home-page {
 	display: grid;
 	gap: 28px;
+	min-height: 145vh;
 }
 
 .home-intro {
@@ -127,6 +128,19 @@ nav a:hover,
 .home-intro p:last-of-type {
 	max-width: 900px;
 	font-size: 1.12rem;
+}
+
+.home-sticker-zone {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	min-height: 72vh;
+	padding-top: 28px;
+}
+
+.home-sticker {
+	width: min(280px, 72vw);
+	height: auto;
 }
 
 .narrow-page {

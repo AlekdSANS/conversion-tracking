@@ -15,6 +15,14 @@ function HomePage() {
           <Link to="/newsletter">Try newsletter tracking</Link>
         </div>
       </div>
+
+      <div className="home-sticker-zone" aria-label="Bottom sticker">
+        <img
+          className="home-sticker"
+          src="/silly/laced.webp"
+          alt="This is laced sticker"
+        />
+      </div>
     </section>
   )
 }
