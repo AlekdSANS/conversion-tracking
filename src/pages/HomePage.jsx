@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import ContactActions from '../components/ContactActions'
 
 function HomePage() {
   return (
@@ -15,6 +16,8 @@ function HomePage() {
           <Link to="/newsletter">Try newsletter tracking</Link>
         </div>
       </div>
+
+      <ContactActions location="home_page" />
 
       <div className="home-sticker-zone" aria-label="Bottom sticker">
         <img

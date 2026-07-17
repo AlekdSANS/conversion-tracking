@@ -1,4 +1,3 @@
-import ContactActions from '../components/ContactActions'
 import ContactForm from '../components/ContactForm'
 
 function ContactPage() {
@@ -23,8 +22,6 @@ function ContactPage() {
         formLocation="contact_page"
         title="Contact page form"
       />
-
-      <ContactActions location="contact_page" />
     </section>
   )
 }
