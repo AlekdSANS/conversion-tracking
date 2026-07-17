@@ -3,13 +3,22 @@ import { getStoredCampaignParams, getSafeCampaignParams } from '../utils/campaig
 import { getStoredConsent } from '../utils/consent'
 import { trackEvent, trackFormError, trackFormSuccess } from '../utils/analytics'
 
+function isDebugPanelEnabled() {
+  if (import.meta.env.DEV) {
+    return true
+  }
+
+  return new URLSearchParams(window.location.search).get('debug') === 'true'
+}
+
 function AnalyticsDebugPanel() {
+  const debugPanelEnabled = isDebugPanelEnabled()
   const [events, setEvents] = useState([])
   const [consentState, setConsentState] = useState(getStoredConsent)
   const [campaignParams, setCampaignParams] = useState(getStoredCampaignParams)
 
   useEffect(() => {
-    if (!import.meta.env.DEV) {
+    if (!debugPanelEnabled) {
       return undefined
     }
 
@@ -24,9 +33,9 @@ function AnalyticsDebugPanel() {
     return () => {
       window.removeEventListener('analytics:event', handleAnalyticsEvent)
     }
-  }, [])
+  }, [debugPanelEnabled])
 
-  if (!import.meta.env.DEV) {
+  if (!debugPanelEnabled) {
     return null
   }
 
@@ -35,7 +44,7 @@ function AnalyticsDebugPanel() {
       <div className="debug-header">
         <div>
           <h2>Analytics debug</h2>
-          <p>Development only. Use this to inspect dataLayer events.</p>
+          <p>Visible in development or when the URL includes debug=true.</p>
         </div>
         <div className="debug-actions">
           <button type="button" onClick={() => setEvents([])}>
