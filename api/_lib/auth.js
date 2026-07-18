@@ -1,4 +1,7 @@
 import crypto from 'node:crypto'
+import { loadLocalEnv } from './loadLocalEnv.js'
+
+loadLocalEnv()
 
 const COOKIE_NAME = 'analytics_practice_session'
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7

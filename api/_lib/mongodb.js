@@ -1,4 +1,7 @@
 import { MongoClient } from 'mongodb'
+import { loadLocalEnv } from './loadLocalEnv.js'
+
+loadLocalEnv()
 
 const uri = process.env.MONGODB_URI
 const dbName = process.env.MONGODB_DB || 'analytics_practice'

@@ -63,6 +63,12 @@ export default async function handler(req, res) {
       return
     }
 
-    json(res, 500, { error: 'Could not create account.' })
+    console.error('Register API error:', error)
+    json(res, 500, {
+      error:
+        error.message === 'MONGODB_URI is not configured'
+          ? 'MongoDB is not configured.'
+          : 'Could not create account.',
+    })
   }
 }

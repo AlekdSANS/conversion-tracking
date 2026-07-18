@@ -8,7 +8,9 @@ async function requestAuth(path, body) {
     },
     body: JSON.stringify(body),
   })
-  const data = await response.json()
+  const data = await response
+    .json()
+    .catch(() => ({ error: `Request failed with status ${response.status}.` }))
 
   if (!response.ok) {
     throw new Error(data.error || 'Request failed.')
