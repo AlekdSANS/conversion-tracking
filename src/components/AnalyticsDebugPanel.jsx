@@ -3,16 +3,8 @@ import { getStoredCampaignParams, getSafeCampaignParams } from '../utils/campaig
 import { getStoredConsent } from '../utils/consent'
 import { trackEvent, trackFormError, trackFormSuccess } from '../utils/analytics'
 
-function isDebugPanelEnabled() {
-  if (import.meta.env.DEV) {
-    return true
-  }
-
-  return new URLSearchParams(window.location.search).get('debug') === 'true'
-}
-
 function AnalyticsDebugPanel({ enabled = false }) {
-  const debugPanelEnabled = enabled && isDebugPanelEnabled()
+  const debugPanelEnabled = enabled
   const [events, setEvents] = useState([])
   const [consentState, setConsentState] = useState(getStoredConsent)
   const [campaignParams, setCampaignParams] = useState(getStoredCampaignParams)
@@ -44,7 +36,7 @@ function AnalyticsDebugPanel({ enabled = false }) {
       <div className="debug-header">
         <div>
           <h2>Analytics debug</h2>
-          <p>Visible for admin users in development or with debug=true.</p>
+          <p>Visible for admin users.</p>
         </div>
         <div className="debug-actions">
           <button type="button" onClick={() => setEvents([])}>
