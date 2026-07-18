@@ -5,6 +5,15 @@ import { json, parseJsonBody } from './_lib/auth.js'
 loadLocalEnv()
 
 const allowedFormTypes = new Set(['contact', 'callback', 'newsletter'])
+const resendTestSender = 'Conversion Tracking <onboarding@resend.dev>'
+const publicEmailDomains = [
+  'gmail.com',
+  'googlemail.com',
+  'outlook.com',
+  'hotmail.com',
+  'live.com',
+  'yahoo.com',
+]
 
 function escapeHtml(value) {
   return String(value)
@@ -18,13 +27,30 @@ function escapeHtml(value) {
 function getEmailConfig() {
   const apiKey = process.env.RESEND_API_KEY
   const to = process.env.CONTACT_TO_EMAIL
-  const from = process.env.CONTACT_FROM_EMAIL || 'onboarding@resend.dev'
+  const from = normalizeSender(process.env.CONTACT_FROM_EMAIL)
 
   if (!apiKey || !to) {
     throw new Error('EMAIL_CONFIG_MISSING')
   }
 
   return { apiKey, from, to }
+}
+
+function normalizeSender(sender) {
+  const trimmedSender = String(sender || '').trim()
+
+  if (!trimmedSender || trimmedSender === 'onboarding@resend.dev') {
+    return resendTestSender
+  }
+
+  const emailMatch = trimmedSender.match(/<?([^<>\s]+@[^<>\s]+)>?$/)
+  const domain = emailMatch?.[1]?.split('@')[1]?.toLowerCase()
+
+  if (publicEmailDomains.includes(domain)) {
+    return resendTestSender
+  }
+
+  return trimmedSender
 }
 
 function getPublicEmailError(error) {
