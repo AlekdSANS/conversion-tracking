@@ -134,11 +134,11 @@ export default async function handler(req, res) {
       to,
       subject: getSubject(validated.formType),
       html: getHtml(validated.formType, validated.payload),
-      replyTo: validated.payload.email || undefined,
+      reply_to: validated.payload.email || undefined,
     })
 
     if (result.error) {
-      console.error('Resend error:', result.error)
+      console.error('Resend error:', { from, to, error: result.error })
       json(res, 502, { error: getPublicEmailError(result.error) })
       return
     }
