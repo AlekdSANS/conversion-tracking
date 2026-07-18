@@ -139,12 +139,22 @@ nav a:hover,
 	min-height: 145vh;
 }
 
+.home-content {
+	display: grid;
+	align-content: center;
+	justify-items: center;
+	min-height: calc(100vh - 180px);
+	text-align: center;
+}
+
 .home-intro {
 	max-width: 100%;
 }
 
 .home-intro p:last-of-type {
 	max-width: 900px;
+	margin-right: auto;
+	margin-left: auto;
 	font-size: 1.12rem;
 }
 
@@ -258,6 +268,7 @@ p {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
+	justify-content: center;
 	margin-top: 18px;
 }
 
@@ -279,6 +290,14 @@ p {
 
 .contact-actions {
 	margin-top: 18px;
+}
+
+.home-content .contact-actions {
+	margin-top: 0;
+}
+
+.home-content .contact-action-list {
+	justify-content: center;
 }
 
 .contact-actions h2 {
