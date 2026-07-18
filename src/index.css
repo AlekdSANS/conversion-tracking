@@ -307,7 +307,7 @@ p {
 
 .channel-options {
 	display: grid;
-	grid-template-columns: repeat(5, minmax(0, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
 	gap: 8px;
 }
 
@@ -352,6 +352,84 @@ p {
 	background: #fbfcff;
 	font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
 	font-size: 0.86rem;
+}
+
+.custom-channel-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 10px;
+	align-items: end;
+}
+
+.param-builder {
+	display: grid;
+	gap: 12px;
+}
+
+.param-builder-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.param-builder-header h2 {
+	margin-bottom: 0;
+	font-size: 1.05rem;
+}
+
+.param-row-list {
+	display: grid;
+	gap: 10px;
+}
+
+.param-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+	gap: 10px;
+	align-items: end;
+}
+
+.remove-param-button:disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
+.auth-card {
+	gap: 18px;
+}
+
+.auth-mode-tabs {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	border: 1px solid #cfe0ff;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.auth-mode-tabs button {
+	border: 0;
+	padding: 11px 14px;
+	color: var(--accent);
+	background: #eef4ff;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+.auth-mode-tabs button.active {
+	color: #ffffff;
+	background: var(--accent);
+}
+
+.auth-form,
+.auth-panel {
+	display: grid;
+	gap: 16px;
+}
+
+.auth-panel h2,
+.auth-panel p {
+	margin: 0;
 }
 
 .contact-actions {
@@ -642,5 +720,15 @@ pre {
 
 	.channel-options {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.custom-channel-row,
+	.param-row {
+		grid-template-columns: 1fr;
+	}
+
+	.param-builder-header {
+		align-items: stretch;
+		flex-direction: column;
 	}
 }

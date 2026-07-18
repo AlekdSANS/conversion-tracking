@@ -11,8 +11,8 @@ function isDebugPanelEnabled() {
   return new URLSearchParams(window.location.search).get('debug') === 'true'
 }
 
-function AnalyticsDebugPanel() {
-  const debugPanelEnabled = isDebugPanelEnabled()
+function AnalyticsDebugPanel({ enabled = false }) {
+  const debugPanelEnabled = enabled && isDebugPanelEnabled()
   const [events, setEvents] = useState([])
   const [consentState, setConsentState] = useState(getStoredConsent)
   const [campaignParams, setCampaignParams] = useState(getStoredCampaignParams)
@@ -44,7 +44,7 @@ function AnalyticsDebugPanel() {
       <div className="debug-header">
         <div>
           <h2>Analytics debug</h2>
-          <p>Visible in development or when the URL includes debug=true.</p>
+          <p>Visible for admin users in development or with debug=true.</p>
         </div>
         <div className="debug-actions">
           <button type="button" onClick={() => setEvents([])}>

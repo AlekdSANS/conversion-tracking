@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { expect, test } from 'vitest'
@@ -163,6 +163,29 @@ test('pushes a page-view event on route change', async () => {
   })
 })
 
+test('pushes source and campaign UTM values into analytics events', async () => {
+  saveConsent({ necessary: true, analytics: true, advertising: true })
+  renderApp([
+    '/?utm_source=gmail&utm_medium=email&utm_campaign=bro_test&utm_content=aaaa',
+  ])
+
+  await waitFor(() => {
+    expect(window.dataLayer).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event: 'page_view',
+          traffic_source: 'gmail',
+          utm_source: 'gmail',
+          campaign_name: 'bro_test',
+          utm_campaign: 'bro_test',
+          utm_medium: 'email',
+          utm_content: 'aaaa',
+        }),
+      ]),
+    )
+  })
+})
+
 test('builds a telegram UTM link', () => {
   renderApp(['/utm-builder'])
 
@@ -170,6 +193,67 @@ test('builds a telegram UTM link', () => {
   expect(screen.getByDisplayValue(/utm_source=telegram/)).toBeInTheDocument()
   expect(screen.getByDisplayValue(/utm_medium=chat/)).toBeInTheDocument()
   expect(screen.getByDisplayValue(/utm_campaign=bro_test/)).toBeInTheDocument()
+})
+
+test('adds custom link parameters', async () => {
+  const user = userEvent.setup()
+  renderApp(['/utm-builder'])
+
+  await user.click(screen.getByRole('button', { name: /add parameter/i }))
+  const nameInputs = screen.getAllByPlaceholderText(/utm_source/i)
+  const valueInputs = screen.getAllByPlaceholderText(/telegram/i)
+
+  await user.type(nameInputs.at(-1), 'ref')
+  await user.type(valueInputs.at(-1), 'bro')
+
+  expect(screen.getByDisplayValue(/ref=bro/)).toBeInTheDocument()
+})
+
+test('adds a custom channel preset', async () => {
+  const user = userEvent.setup()
+  renderApp(['/utm-builder'])
+
+  await user.type(screen.getByPlaceholderText(/tiktok/i), 'TikTok')
+  await user.click(screen.getByRole('button', { name: /add channel/i }))
+
+  expect(screen.getByLabelText(/tiktok/i)).toBeChecked()
+  expect(screen.getByDisplayValue(/utm_source=tiktok/)).toBeInTheDocument()
+})
+
+test('shows the login system page', async () => {
+  renderApp(['/login'])
+
+  expect(screen.getByRole('heading', { name: /login system/i })).toBeInTheDocument()
+  expect(screen.getAllByRole('button', { name: /log in/i })).toHaveLength(2)
+  expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument()
+})
+
+test('shows analytics debug only for admin users', async () => {
+  renderApp(['/'])
+
+  expect(
+    screen.queryByRole('complementary', {
+      name: /development analytics debug panel/i,
+    }),
+  ).not.toBeInTheDocument()
+
+  act(() => {
+    window.dispatchEvent(
+      new CustomEvent('auth:user-changed', {
+        detail: {
+          user_id: 'admin-user',
+          login: 'admin',
+          admin_status: 1,
+        },
+      }),
+    )
+  })
+
+  expect(
+    screen.getByRole('complementary', {
+      name: /development analytics debug panel/i,
+    }),
+  ).toBeInTheDocument()
 })
 
 test('pushes an analytics event when opening a generated UTM link', async () => {
@@ -184,10 +268,12 @@ test('pushes an analytics event when opening a generated UTM link', async () => 
       expect.objectContaining({
         event: 'utm_builder_open_link',
         tool_name: 'utm_builder',
-        utm_channel: 'telegram',
+        utm_channel: 'Telegram',
         generated_source: 'telegram',
         generated_medium: 'chat',
         generated_campaign: 'bro_test',
+        generated_param_count: 3,
+        generated_param_names: 'utm_source,utm_medium,utm_campaign',
       }),
     ]),
   )

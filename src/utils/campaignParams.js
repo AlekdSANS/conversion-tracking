@@ -46,7 +46,9 @@ export function getSafeCampaignParams() {
 
   return {
     traffic_source: campaign.utm_source || 'direct',
+    utm_source: campaign.utm_source || 'direct',
     campaign_name: campaign.utm_campaign || '',
+    utm_campaign: campaign.utm_campaign || '',
     utm_medium: campaign.utm_medium || '',
     utm_term: campaign.utm_term || '',
     utm_content: campaign.utm_content || '',

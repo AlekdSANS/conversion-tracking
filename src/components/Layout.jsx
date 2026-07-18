@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import AnalyticsDebugPanel from './AnalyticsDebugPanel'
 import ConsentBanner from './ConsentBanner'
@@ -10,11 +10,37 @@ const navItems = [
   { to: '/callback', label: 'Callback' },
   { to: '/newsletter', label: 'Newsletter' },
   { to: '/utm-builder', label: 'UTM Builder' },
+  { to: '/login', label: 'Login' },
   { to: '/privacy', label: 'Privacy' },
 ]
 
 function Layout() {
   const [showConsentSettings, setShowConsentSettings] = useState(false)
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    let active = true
+
+    fetch('/api/me')
+      .then((response) => (response.ok ? response.json() : { user: null }))
+      .then((data) => {
+        if (active) {
+          setUser(data.user)
+        }
+      })
+      .catch(() => {})
+
+    function handleUserChanged(event) {
+      setUser(event.detail)
+    }
+
+    window.addEventListener('auth:user-changed', handleUserChanged)
+
+    return () => {
+      active = false
+      window.removeEventListener('auth:user-changed', handleUserChanged)
+    }
+  }, [])
 
   return (
     <>
@@ -75,7 +101,7 @@ function Layout() {
           onClose={() => setShowConsentSettings(false)}
         />
       )}
-      <AnalyticsDebugPanel />
+      <AnalyticsDebugPanel enabled={user?.admin_status === 1} />
     </>
   )
 }

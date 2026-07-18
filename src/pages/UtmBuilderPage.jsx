@@ -1,52 +1,79 @@
 import { useMemo, useState } from 'react'
 import { trackUtmBuilderAction } from '../utils/analytics'
 
-const channelPresets = {
-  telegram: {
+const startingChannels = [
+  {
+    id: 'telegram',
     label: 'Telegram',
-    source: 'telegram',
-    medium: 'chat',
+    params: [
+      { id: 'telegram-source', name: 'utm_source', value: 'telegram' },
+      { id: 'telegram-medium', name: 'utm_medium', value: 'chat' },
+      { id: 'telegram-campaign', name: 'utm_campaign', value: 'bro_test' },
+    ],
   },
-  discord: {
+  {
+    id: 'discord',
     label: 'Discord',
-    source: 'discord',
-    medium: 'community',
+    params: [
+      { id: 'discord-source', name: 'utm_source', value: 'discord' },
+      { id: 'discord-medium', name: 'utm_medium', value: 'community' },
+      { id: 'discord-campaign', name: 'utm_campaign', value: 'community_test' },
+    ],
   },
-  gmail: {
+  {
+    id: 'gmail',
     label: 'Gmail',
-    source: 'gmail',
-    medium: 'email',
+    params: [
+      { id: 'gmail-source', name: 'utm_source', value: 'gmail' },
+      { id: 'gmail-medium', name: 'utm_medium', value: 'email' },
+      { id: 'gmail-campaign', name: 'utm_campaign', value: 'email_test' },
+    ],
   },
-  whatsapp: {
+  {
+    id: 'whatsapp',
     label: 'WhatsApp',
-    source: 'whatsapp',
-    medium: 'chat',
+    params: [
+      { id: 'whatsapp-source', name: 'utm_source', value: 'whatsapp' },
+      { id: 'whatsapp-medium', name: 'utm_medium', value: 'chat' },
+      { id: 'whatsapp-campaign', name: 'utm_campaign', value: 'chat_test' },
+    ],
   },
-  messenger: {
+  {
+    id: 'messenger',
     label: 'Messenger',
-    source: 'messenger',
-    medium: 'chat',
+    params: [
+      { id: 'messenger-source', name: 'utm_source', value: 'messenger' },
+      { id: 'messenger-medium', name: 'utm_medium', value: 'chat' },
+      { id: 'messenger-campaign', name: 'utm_campaign', value: 'chat_test' },
+    ],
   },
-}
+]
 
 const defaultBaseUrl =
   typeof window === 'undefined'
     ? 'https://example.com/'
     : `${window.location.origin}/`
 
-function buildUtmUrl({ baseUrl, source, medium, campaign, content }) {
+function createId(prefix) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
+function normalizeParamName(name) {
+  return name.trim().replace(/\s+/g, '_')
+}
+
+function buildUrl(baseUrl, params) {
   try {
     const url = new URL(baseUrl)
 
-    url.searchParams.set('utm_source', source)
-    url.searchParams.set('utm_medium', medium)
-    url.searchParams.set('utm_campaign', campaign)
+    params.forEach((param) => {
+      const name = normalizeParamName(param.name)
+      const value = param.value.trim()
 
-    if (content.trim()) {
-      url.searchParams.set('utm_content', content.trim())
-    } else {
-      url.searchParams.delete('utm_content')
-    }
+      if (name && value) {
+        url.searchParams.set(name, value)
+      }
+    })
 
     return url.toString()
   } catch {
@@ -54,33 +81,120 @@ function buildUtmUrl({ baseUrl, source, medium, campaign, content }) {
   }
 }
 
+function cloneParams(params) {
+  return params.map((param) => ({
+    ...param,
+    id: createId(param.name || 'param'),
+  }))
+}
+
 function UtmBuilderPage() {
-  const [channel, setChannel] = useState('telegram')
+  const [channels, setChannels] = useState(startingChannels)
+  const [selectedChannelId, setSelectedChannelId] = useState('telegram')
   const [baseUrl, setBaseUrl] = useState(defaultBaseUrl)
-  const [campaign, setCampaign] = useState('bro_test')
-  const [content, setContent] = useState('')
+  const [params, setParams] = useState(() => cloneParams(startingChannels[0].params))
+  const [customChannelName, setCustomChannelName] = useState('')
   const [copyStatus, setCopyStatus] = useState('')
 
-  const preset = channelPresets[channel]
-  const generatedUrl = useMemo(
-    () =>
-      buildUtmUrl({
-        baseUrl,
-        source: preset.source,
-        medium: preset.medium,
-        campaign,
-        content,
-      }),
-    [baseUrl, campaign, content, preset],
+  const selectedChannel = channels.find(
+    (channel) => channel.id === selectedChannelId,
   )
 
+  const generatedUrl = useMemo(() => buildUrl(baseUrl, params), [baseUrl, params])
+
+  const activeParams = params.filter(
+    (param) => normalizeParamName(param.name) && param.value.trim(),
+  )
+
+  function selectChannel(channel) {
+    setSelectedChannelId(channel.id)
+    setParams(cloneParams(channel.params))
+    setCopyStatus('')
+  }
+
+  function updateParam(id, field, value) {
+    setParams((currentParams) =>
+      currentParams.map((param) =>
+        param.id === id ? { ...param, [field]: value } : param,
+      ),
+    )
+    setCopyStatus('')
+  }
+
+  function addParam() {
+    setParams((currentParams) => [
+      ...currentParams,
+      { id: createId('param'), name: '', value: '' },
+    ])
+    setCopyStatus('')
+  }
+
+  function removeParam(id) {
+    setParams((currentParams) =>
+      currentParams.length === 1
+        ? currentParams
+        : currentParams.filter((param) => param.id !== id),
+    )
+    setCopyStatus('')
+  }
+
+  function addCustomChannel() {
+    const label = customChannelName.trim()
+
+    if (!label) {
+      setCopyStatus('Name the channel first.')
+      return
+    }
+
+    const sourceValue = label.toLowerCase().replace(/\s+/g, '_')
+    const channel = {
+      id: createId(sourceValue),
+      label,
+      params: [
+        { id: createId('source'), name: 'utm_source', value: sourceValue },
+        { id: createId('medium'), name: 'utm_medium', value: '' },
+        { id: createId('campaign'), name: 'utm_campaign', value: '' },
+      ],
+    }
+
+    setChannels((currentChannels) => [...currentChannels, channel])
+    setSelectedChannelId(channel.id)
+    setParams(cloneParams(channel.params))
+    setCustomChannelName('')
+    setCopyStatus('Custom channel added.')
+  }
+
+  function saveCurrentAsChannel() {
+    if (!selectedChannel) {
+      return
+    }
+
+    setChannels((currentChannels) =>
+      currentChannels.map((channel) =>
+        channel.id === selectedChannelId
+          ? { ...channel, params: cloneParams(params) }
+          : channel,
+      ),
+    )
+    setCopyStatus(`${selectedChannel.label} preset updated.`)
+  }
+
   function getTrackingDetails() {
+    const paramNames = activeParams.map((param) => normalizeParamName(param.name))
+
     return {
-      utm_channel: channel,
-      generated_source: preset.source,
-      generated_medium: preset.medium,
-      generated_campaign: campaign || '',
-      has_generated_content: Boolean(content.trim()),
+      utm_channel: selectedChannel?.label || 'custom',
+      generated_source:
+        activeParams.find((param) => normalizeParamName(param.name) === 'utm_source')
+          ?.value || '',
+      generated_medium:
+        activeParams.find((param) => normalizeParamName(param.name) === 'utm_medium')
+          ?.value || '',
+      generated_campaign:
+        activeParams.find((param) => normalizeParamName(param.name) === 'utm_campaign')
+          ?.value || '',
+      generated_param_count: activeParams.length,
+      generated_param_names: paramNames.join(','),
     }
   }
 
@@ -100,8 +214,9 @@ function UtmBuilderPage() {
     }
   }
 
-  function handleOpenLink() {
+  function handleOpenLink(event) {
     if (!generatedUrl) {
+      event.preventDefault()
       return
     }
 
@@ -114,32 +229,48 @@ function UtmBuilderPage() {
         <p className="eyebrow">Bonus tool</p>
         <h1>UTM link creator</h1>
         <p>
-          Pick a channel, name the campaign, and copy a link you can send to
-          someone before they visit the site.
+          Build links with any parameter names you need, from classic UTMs to
+          custom campaign labels.
         </p>
       </div>
 
       <form className="form-card utm-builder-form">
         <fieldset className="channel-picker">
-          <legend>Channel</legend>
+          <legend>Channel preset</legend>
           <div className="channel-options">
-            {Object.entries(channelPresets).map(([key, option]) => (
-              <label key={key} className="channel-option">
+            {channels.map((channel) => (
+              <label key={channel.id} className="channel-option">
                 <input
                   type="radio"
                   name="channel"
-                  value={key}
-                  checked={channel === key}
-                  onChange={() => {
-                    setChannel(key)
-                    setCopyStatus('')
-                  }}
+                  value={channel.id}
+                  checked={selectedChannelId === channel.id}
+                  onChange={() => selectChannel(channel)}
                 />
-                <span>{option.label}</span>
+                <span>{channel.label}</span>
               </label>
             ))}
           </div>
         </fieldset>
+
+        <div className="custom-channel-row">
+          <label className="field">
+            New channel
+            <input
+              type="text"
+              value={customChannelName}
+              onChange={(event) => setCustomChannelName(event.target.value)}
+              placeholder="TikTok, Reddit, Partner site"
+            />
+          </label>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={addCustomChannel}
+          >
+            Add channel
+          </button>
+        </div>
 
         <label className="field">
           Page URL
@@ -154,36 +285,71 @@ function UtmBuilderPage() {
           />
         </label>
 
-        <label className="field">
-          Campaign name
-          <input
-            type="text"
-            value={campaign}
-            onChange={(event) => {
-              setCampaign(event.target.value)
-              setCopyStatus('')
-            }}
-            placeholder="bro_test"
-          />
-        </label>
+        <div className="param-builder">
+          <div className="param-builder-header">
+            <h2>Parameters</h2>
+            <div className="form-actions">
+              <button type="button" className="secondary-button" onClick={addParam}>
+                Add parameter
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={saveCurrentAsChannel}
+              >
+                Save preset
+              </button>
+            </div>
+          </div>
 
-        <label className="field">
-          Content label
-          <input
-            type="text"
-            value={content}
-            onChange={(event) => {
-              setContent(event.target.value)
-              setCopyStatus('')
-            }}
-            placeholder="optional, like first_message"
-          />
-        </label>
+          <div className="param-row-list">
+            {params.map((param) => (
+              <div className="param-row" key={param.id}>
+                <label className="field">
+                  Name
+                  <input
+                    type="text"
+                    value={param.name}
+                    onChange={(event) =>
+                      updateParam(param.id, 'name', event.target.value)
+                    }
+                    placeholder="utm_source"
+                  />
+                </label>
+                <label className="field">
+                  Value
+                  <input
+                    type="text"
+                    value={param.value}
+                    onChange={(event) =>
+                      updateParam(param.id, 'value', event.target.value)
+                    }
+                    placeholder="telegram"
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="secondary-button remove-param-button"
+                  onClick={() => removeParam(param.id)}
+                  disabled={params.length === 1}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="utm-param-preview" aria-label="Generated parameters">
-          <span>utm_source={preset.source}</span>
-          <span>utm_medium={preset.medium}</span>
-          <span>utm_campaign={campaign || 'campaign_name'}</span>
+          {activeParams.length ? (
+            activeParams.map((param) => (
+              <span key={`${param.id}-preview`}>
+                {normalizeParamName(param.name)}={param.value}
+              </span>
+            ))
+          ) : (
+            <span>No active parameters yet</span>
+          )}
         </div>
 
         <label className="field">
