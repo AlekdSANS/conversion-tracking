@@ -171,3 +171,24 @@ test('builds a telegram UTM link', () => {
   expect(screen.getByDisplayValue(/utm_medium=chat/)).toBeInTheDocument()
   expect(screen.getByDisplayValue(/utm_campaign=bro_test/)).toBeInTheDocument()
 })
+
+test('pushes an analytics event when opening a generated UTM link', async () => {
+  saveConsent({ necessary: true, analytics: true, advertising: true })
+  const user = userEvent.setup()
+  renderApp(['/utm-builder'])
+
+  await user.click(screen.getByRole('link', { name: /open link/i }))
+
+  expect(window.dataLayer).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        event: 'utm_builder_open_link',
+        tool_name: 'utm_builder',
+        utm_channel: 'telegram',
+        generated_source: 'telegram',
+        generated_medium: 'chat',
+        generated_campaign: 'bro_test',
+      }),
+    ]),
+  )
+})

@@ -131,6 +131,13 @@ export function trackContactAction(contactMethod, contactLocation) {
   })
 }
 
+export function trackUtmBuilderAction(action, details) {
+  return trackEvent(`utm_builder_${action}`, {
+    tool_name: 'utm_builder',
+    ...details,
+  })
+}
+
 export function trackConsentUpdate(consentSettings) {
   // Later, Google Consent Mode can be connected here before GTM tags fire.
   return trackEvent('consent_update', {

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { trackUtmBuilderAction } from '../utils/analytics'
 
 const channelPresets = {
   telegram: {
@@ -73,11 +74,23 @@ function UtmBuilderPage() {
     [baseUrl, campaign, content, preset],
   )
 
+  function getTrackingDetails() {
+    return {
+      utm_channel: channel,
+      generated_source: preset.source,
+      generated_medium: preset.medium,
+      generated_campaign: campaign || '',
+      has_generated_content: Boolean(content.trim()),
+    }
+  }
+
   async function handleCopy() {
     if (!generatedUrl) {
       setCopyStatus('Enter a valid URL first.')
       return
     }
+
+    trackUtmBuilderAction('copy_link', getTrackingDetails())
 
     try {
       await navigator.clipboard.writeText(generatedUrl)
@@ -85,6 +98,14 @@ function UtmBuilderPage() {
     } catch {
       setCopyStatus('Copy failed. Select the link manually.')
     }
+  }
+
+  function handleOpenLink() {
+    if (!generatedUrl) {
+      return
+    }
+
+    trackUtmBuilderAction('open_link', getTrackingDetails())
   }
 
   return (
@@ -174,7 +195,11 @@ function UtmBuilderPage() {
           <button type="button" className="primary-button" onClick={handleCopy}>
             Copy link
           </button>
-          <a className="secondary-button" href={generatedUrl || '#'}>
+          <a
+            className="secondary-button"
+            href={generatedUrl || '#'}
+            onClick={handleOpenLink}
+          >
             Open link
           </a>
         </div>
