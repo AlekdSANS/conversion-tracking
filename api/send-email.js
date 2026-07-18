@@ -27,6 +27,28 @@ function getEmailConfig() {
   return { apiKey, from, to }
 }
 
+function getPublicEmailError(error) {
+  const message = String(error?.message || error?.error || '').toLowerCase()
+
+  if (message.includes('domain') || message.includes('sender')) {
+    return 'Email sender is not verified. Use onboarding@resend.dev or verify a domain in Resend.'
+  }
+
+  if (message.includes('recipient') || message.includes('testing emails')) {
+    return 'Resend test mode can only send to an allowed recipient. Check CONTACT_TO_EMAIL.'
+  }
+
+  if (message.includes('api key') || message.includes('unauthorized')) {
+    return 'Resend API key is invalid or missing.'
+  }
+
+  if (message.includes('rate')) {
+    return 'Email rate limit reached. Try again later.'
+  }
+
+  return 'Email could not be sent.'
+}
+
 function getSubject(formType) {
   if (formType === 'callback') {
     return 'New callback request'
@@ -112,11 +134,12 @@ export default async function handler(req, res) {
       to,
       subject: getSubject(validated.formType),
       html: getHtml(validated.formType, validated.payload),
+      replyTo: validated.payload.email || undefined,
     })
 
     if (result.error) {
       console.error('Resend error:', result.error)
-      json(res, 502, { error: 'Email could not be sent.' })
+      json(res, 502, { error: getPublicEmailError(result.error) })
       return
     }
 
@@ -127,7 +150,7 @@ export default async function handler(req, res) {
       error:
         error.message === 'EMAIL_CONFIG_MISSING'
           ? 'Email is not configured.'
-          : 'Email could not be sent.',
+          : getPublicEmailError(error),
     })
   }
 }
