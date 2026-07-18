@@ -62,6 +62,10 @@ test('shows invalid email validation', async () => {
 test('redirects to thank-you page after successful simulated submission', async () => {
   saveConsent({ necessary: true, analytics: true, advertising: true })
   const user = userEvent.setup()
+  vi.spyOn(window, 'fetch').mockResolvedValue({
+    ok: true,
+    json: async () => ({ ok: true }),
+  })
   renderApp(['/contact'])
 
   await completeContactForm(user)
@@ -70,6 +74,8 @@ test('redirects to thank-you page after successful simulated submission', async 
   await waitFor(() => {
     expect(screen.getByRole('heading', { name: /thank you/i })).toBeInTheDocument()
   })
+
+  window.fetch.mockRestore()
 })
 
 test('pushes an analytics event on form start', async () => {
@@ -93,6 +99,10 @@ test('pushes an analytics event on form start', async () => {
 test('pushes an analytics event on form success', async () => {
   saveConsent({ necessary: true, analytics: true, advertising: true })
   const user = userEvent.setup()
+  vi.spyOn(window, 'fetch').mockResolvedValue({
+    ok: true,
+    json: async () => ({ ok: true }),
+  })
   renderApp(['/contact'])
 
   await completeContactForm(user)
@@ -108,11 +118,17 @@ test('pushes an analytics event on form success', async () => {
       ]),
     )
   })
+
+  window.fetch.mockRestore()
 })
 
 test('does not include personal information in analytics events', async () => {
   saveConsent({ necessary: true, analytics: true, advertising: true })
   const user = userEvent.setup()
+  vi.spyOn(window, 'fetch').mockResolvedValue({
+    ok: true,
+    json: async () => ({ ok: true }),
+  })
   renderApp(['/contact'])
 
   await completeContactForm(user)
@@ -127,6 +143,35 @@ test('does not include personal information in analytics events', async () => {
   expect(analyticsText).not.toContain('ada@example.com')
   expect(analyticsText).not.toContain('+48 123 456 789')
   expect(analyticsText).not.toContain('Please contact me.')
+
+  window.fetch.mockRestore()
+})
+
+test('pushes an analytics event when email sending fails', async () => {
+  saveConsent({ necessary: true, analytics: true, advertising: true })
+  const user = userEvent.setup()
+  vi.spyOn(window, 'fetch').mockResolvedValue({
+    ok: false,
+    json: async () => ({ error: 'Email could not be sent.' }),
+  })
+  renderApp(['/contact'])
+
+  await completeContactForm(user)
+  await user.click(screen.getByRole('button', { name: /submit form/i }))
+
+  await waitFor(() => {
+    expect(window.dataLayer).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event: 'contact_form_error',
+          error_type: 'email_send_error',
+        }),
+      ]),
+    )
+  })
+
+  expect(screen.getByText(/email could not be sent/i)).toBeInTheDocument()
+  window.fetch.mockRestore()
 })
 
 test('saves consent preferences', async () => {

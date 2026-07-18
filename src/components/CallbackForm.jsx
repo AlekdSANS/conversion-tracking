@@ -6,6 +6,7 @@ import {
   trackFormSubmit,
   trackFormSuccess,
 } from '../utils/analytics'
+import { sendFormEmail } from '../utils/emailForms'
 import FormStatus from './FormStatus'
 
 const initialValues = {
@@ -125,12 +126,25 @@ function CallbackForm() {
     }
 
     setIsSubmitting(true)
-    await new Promise((resolve) => window.setTimeout(resolve, 500))
 
     if (values.simulateFailure) {
       setIsSubmitting(false)
       setStatusMessage('The simulated callback request failed. Try again.')
       trackFormError(formName, formLocation, 'simulated_server_error')
+      return
+    }
+
+    try {
+      await sendFormEmail('callback', {
+        phone: values.phone,
+        preferredTime: values.preferredTime,
+        formName,
+        formLocation,
+      })
+    } catch (error) {
+      setIsSubmitting(false)
+      setStatusMessage(error.message)
+      trackFormError(formName, formLocation, 'email_send_error')
       return
     }
 
