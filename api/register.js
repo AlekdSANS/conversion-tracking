@@ -13,6 +13,23 @@ function isValidLogin(login) {
   return /^[a-zA-Z0-9_.-]{3,32}$/.test(login)
 }
 
+function getRegisterErrorMessage(error) {
+  if (error.message === 'MONGODB_URI is not configured') {
+    return 'MongoDB is not configured.'
+  }
+
+  if (
+    error.name === 'MongoServerSelectionError' ||
+    error.message?.includes('querySrv') ||
+    error.message?.includes('timed out') ||
+    error.message?.includes('ENOTFOUND')
+  ) {
+    return 'Public access is restricted right now. Ask an admin for permission.'
+  }
+
+  return 'Could not create account.'
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     json(res, 405, { error: 'Method not allowed' })
@@ -64,11 +81,6 @@ export default async function handler(req, res) {
     }
 
     console.error('Register API error:', error)
-    json(res, 500, {
-      error:
-        error.message === 'MONGODB_URI is not configured'
-          ? 'MongoDB is not configured.'
-          : 'Could not create account.',
-    })
+    json(res, 500, { error: getRegisterErrorMessage(error) })
   }
 }

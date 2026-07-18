@@ -319,6 +319,45 @@ test('pushes auth analytics after register error', async () => {
   window.fetch.mockRestore()
 })
 
+test('classifies restricted auth access for analytics', async () => {
+  saveConsent({ necessary: true, analytics: true, advertising: true })
+  const user = userEvent.setup()
+  vi.spyOn(window, 'fetch').mockImplementation(async (url) => {
+    if (url === '/api/me') {
+      return {
+        ok: false,
+        json: async () => ({ user: null }),
+      }
+    }
+
+    return {
+      ok: false,
+      json: async () => ({
+        error: 'Public access is restricted right now. Ask an admin for permission.',
+      }),
+    }
+  })
+
+  renderApp(['/login'])
+
+  await user.type(screen.getByLabelText(/login/i), 'alexadmin')
+  await user.type(screen.getByLabelText(/password/i), 'password123')
+  await user.click(screen.getAllByRole('button', { name: /^log in$/i }).at(-1))
+
+  await waitFor(() => {
+    expect(window.dataLayer).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event: 'login_error',
+          error_type: 'restricted_access',
+        }),
+      ]),
+    )
+  })
+
+  window.fetch.mockRestore()
+})
+
 test('shows analytics debug only for admin users', async () => {
   renderApp(['/'])
 

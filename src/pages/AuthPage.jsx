@@ -35,6 +35,10 @@ function getAuthErrorType(message) {
     return 'validation_error'
   }
 
+  if (normalizedMessage.includes('public access is restricted')) {
+    return 'restricted_access'
+  }
+
   if (normalizedMessage.includes('mongodb')) {
     return 'configuration_error'
   }
