@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { trackAuthError, trackAuthSuccess, trackLogout } from '../utils/analytics'
 
 async function requestAuth(path, body) {
   const response = await fetch(path, {
@@ -17,6 +18,28 @@ async function requestAuth(path, body) {
   }
 
   return data
+}
+
+function getAuthErrorType(message) {
+  const normalizedMessage = message.toLowerCase()
+
+  if (normalizedMessage.includes('already exists')) {
+    return 'duplicate_login'
+  }
+
+  if (normalizedMessage.includes('incorrect')) {
+    return 'invalid_credentials'
+  }
+
+  if (normalizedMessage.includes('3-32') || normalizedMessage.includes('8 characters')) {
+    return 'validation_error'
+  }
+
+  if (normalizedMessage.includes('mongodb')) {
+    return 'configuration_error'
+  }
+
+  return 'server_error'
 }
 
 function AuthPage() {
@@ -62,9 +85,11 @@ function AuthPage() {
 
       setUser(data.user)
       window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: data.user }))
+      trackAuthSuccess(mode, data.user)
       setPassword('')
       setStatus(mode === 'login' ? 'Logged in.' : 'Account created.')
     } catch (error) {
+      trackAuthError(mode, getAuthErrorType(error.message))
       setStatus(error.message)
     } finally {
       setLoading(false)
@@ -77,6 +102,7 @@ function AuthPage() {
 
     try {
       await fetch('/api/logout', { method: 'POST' })
+      trackLogout(user)
       setUser(null)
       window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: null }))
       setStatus('Logged out.')

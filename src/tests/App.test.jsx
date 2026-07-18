@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import App from '../App'
 import ContactForm from '../components/ContactForm'
 import ConsentBanner from '../components/ConsentBanner'
@@ -226,6 +226,97 @@ test('shows the login system page', async () => {
   expect(screen.getByRole('heading', { name: /login system/i })).toBeInTheDocument()
   expect(screen.getAllByRole('button', { name: /log in/i })).toHaveLength(2)
   expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument()
+})
+
+test('pushes safe auth analytics after login success', async () => {
+  saveConsent({ necessary: true, analytics: true, advertising: true })
+  const user = userEvent.setup()
+  vi.spyOn(window, 'fetch').mockImplementation(async (url) => {
+    if (url === '/api/me') {
+      return {
+        ok: false,
+        json: async () => ({ user: null }),
+      }
+    }
+
+    return {
+      ok: true,
+      json: async () => ({
+        user: {
+          user_id: 'user-1',
+          login: 'alexadmin',
+          admin_status: 1,
+        },
+      }),
+    }
+  })
+
+  renderApp(['/login'])
+
+  await user.type(screen.getByLabelText(/login/i), 'alexadmin')
+  await user.type(screen.getByLabelText(/password/i), 'password123')
+  await user.click(screen.getAllByRole('button', { name: /^log in$/i }).at(-1))
+
+  await waitFor(() => {
+    expect(window.dataLayer).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event: 'login_success',
+          auth_method: 'password',
+          account_type: 'admin',
+          admin_status: 1,
+          status: 'success',
+        }),
+      ]),
+    )
+  })
+
+  const analyticsText = JSON.stringify(window.dataLayer)
+  expect(analyticsText).not.toContain('alexadmin')
+  expect(analyticsText).not.toContain('password123')
+
+  window.fetch.mockRestore()
+})
+
+test('pushes auth analytics after register error', async () => {
+  saveConsent({ necessary: true, analytics: true, advertising: true })
+  const user = userEvent.setup()
+  vi.spyOn(window, 'fetch').mockImplementation(async (url) => {
+    if (url === '/api/me') {
+      return {
+        ok: false,
+        json: async () => ({ user: null }),
+      }
+    }
+
+    return {
+      ok: false,
+      json: async () => ({ error: 'An account with this login already exists.' }),
+    }
+  })
+
+  renderApp(['/login'])
+
+  await user.click(screen.getByRole('button', { name: /register/i }))
+  await user.type(screen.getByLabelText(/name/i), 'Alex')
+  await user.type(screen.getByLabelText(/login/i), 'alexadmin')
+  await user.type(screen.getByLabelText(/password/i), 'password123')
+  await user.click(screen.getByRole('button', { name: /create account/i }))
+
+  await waitFor(() => {
+    expect(window.dataLayer).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event: 'register_error',
+          auth_method: 'password',
+          status: 'error',
+          error_type: 'duplicate_login',
+        }),
+      ]),
+    )
+  })
+
+  window.fetch.mockRestore()
 })
 
 test('shows analytics debug only for admin users', async () => {

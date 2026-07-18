@@ -224,7 +224,12 @@ function UtmBuilderPage() {
   }
 
   return (
-    <section className="narrow-page utm-builder-page">
+    <section className="narrow-page playful-page utm-builder-page">
+      <img
+        className="playful-image utm-builder-image"
+        src="/silly/utm-builder-sticker.png"
+        alt="UTM builder sticker"
+      />
       <div className="page-intro">
         <p className="eyebrow">Bonus tool</p>
         <h1>UTM link creator</h1>

@@ -224,6 +224,13 @@ nav a:hover,
 	transform: rotate(3deg);
 }
 
+.utm-builder-image {
+	top: 48px;
+	right: -190px;
+	width: clamp(130px, 17vw, 205px);
+	transform: rotate(4deg);
+}
+
 .page-intro {
 	margin-bottom: 24px;
 }

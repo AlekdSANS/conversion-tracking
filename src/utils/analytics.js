@@ -138,6 +138,36 @@ export function trackUtmBuilderAction(action, details) {
   })
 }
 
+function getAccountType(user) {
+  return user?.admin_status === 1 ? 'admin' : 'basic'
+}
+
+export function trackAuthSuccess(action, user) {
+  return trackEvent(`${action}_success`, {
+    auth_method: 'password',
+    account_type: getAccountType(user),
+    admin_status: user?.admin_status === 1 ? 1 : 0,
+    status: 'success',
+  })
+}
+
+export function trackAuthError(action, errorType = 'server_error') {
+  return trackEvent(`${action}_error`, {
+    auth_method: 'password',
+    status: 'error',
+    error_type: errorType,
+  })
+}
+
+export function trackLogout(user) {
+  return trackEvent('logout', {
+    auth_method: 'password',
+    account_type: getAccountType(user),
+    admin_status: user?.admin_status === 1 ? 1 : 0,
+    status: 'success',
+  })
+}
+
 export function trackConsentUpdate(consentSettings) {
   // Later, Google Consent Mode can be connected here before GTM tags fire.
   return trackEvent('consent_update', {
