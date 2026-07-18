@@ -6,8 +6,27 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Contact Form Tracking Test</title>
 
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			window.dataLayer.push({
+				"gtm.start": new Date().getTime(),
+				event: "gtm.js",
+			});
+		</script>
+		<script
+			async
+			src="https://www.googletagmanager.com/gtm.js?id=GTM-N386PQB8"
+		></script>
 	</head>
 	<body>
+		<noscript>
+			<iframe
+				src="https://www.googletagmanager.com/ns.html?id=GTM-N386PQB8"
+				height="0"
+				width="0"
+				style="display: none; visibility: hidden"
+			></iframe>
+		</noscript>
 		<div id="root"></div>
 		<script type="module" src="/src/main.jsx"></script>
 	</body>
