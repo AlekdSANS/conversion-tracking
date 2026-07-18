@@ -9,6 +9,7 @@ const navItems = [
   { to: '/contact', label: 'Contact' },
   { to: '/callback', label: 'Callback' },
   { to: '/newsletter', label: 'Newsletter' },
+  { to: '/utm-builder', label: 'UTM Builder' },
   { to: '/privacy', label: 'Privacy' },
 ]
 

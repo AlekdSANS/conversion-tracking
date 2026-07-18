@@ -7,6 +7,7 @@ import HomePage from './pages/HomePage'
 import NewsletterPage from './pages/NewsletterPage'
 import PrivacyPage from './pages/PrivacyPage'
 import ThankYouPage from './pages/ThankYouPage'
+import UtmBuilderPage from './pages/UtmBuilderPage'
 
 function App() {
   usePageTracking()
@@ -18,6 +19,7 @@ function App() {
         <Route path="contact" element={<ContactPage />} />
         <Route path="callback" element={<CallbackPage />} />
         <Route path="newsletter" element={<NewsletterPage />} />
+        <Route path="utm-builder" element={<UtmBuilderPage />} />
         <Route path="thank-you" element={<ThankYouPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
       </Route>

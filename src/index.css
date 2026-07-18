@@ -288,6 +288,72 @@ p {
 	padding: 24px;
 }
 
+.utm-builder-form {
+	gap: 18px;
+}
+
+.channel-picker {
+	display: grid;
+	gap: 10px;
+	margin: 0;
+	border: 0;
+	padding: 0;
+}
+
+.channel-picker legend {
+	padding: 0;
+	font-weight: 700;
+}
+
+.channel-options {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.channel-option {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	border: 1px solid #cfe0ff;
+	border-radius: 6px;
+	padding: 9px 10px;
+	color: var(--accent);
+	background: #eef4ff;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+.channel-option input {
+	position: absolute;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.channel-option:has(input:checked) {
+	border-color: var(--accent);
+	color: #ffffff;
+	background: var(--accent);
+}
+
+.utm-param-preview {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.utm-param-preview span {
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	padding: 7px 9px;
+	color: var(--muted);
+	background: #fbfcff;
+	font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+	font-size: 0.86rem;
+}
+
 .contact-actions {
 	margin-top: 18px;
 }
@@ -572,5 +638,9 @@ pre {
 
 	.form-actions .secondary-button {
 		width: 100%;
+	}
+
+	.channel-options {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }

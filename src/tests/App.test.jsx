@@ -162,3 +162,12 @@ test('pushes a page-view event on route change', async () => {
     )
   })
 })
+
+test('builds a telegram UTM link', () => {
+  renderApp(['/utm-builder'])
+
+  expect(screen.getByRole('heading', { name: /utm link creator/i })).toBeInTheDocument()
+  expect(screen.getByDisplayValue(/utm_source=telegram/)).toBeInTheDocument()
+  expect(screen.getByDisplayValue(/utm_medium=chat/)).toBeInTheDocument()
+  expect(screen.getByDisplayValue(/utm_campaign=bro_test/)).toBeInTheDocument()
+})
