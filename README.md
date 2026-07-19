@@ -20,16 +20,26 @@ The app is intentionally small, but it behaves like a real tracking playground: 
 
 ## Tech Stack
 
-- React 19
-- Vite
-- React Router
-- MongoDB Atlas / MongoDB Node driver
-- Resend
-- libphonenumber-js
-- Google Tag Manager
-- GA4
-- Vitest + Testing Library
-- ESLint
+- React 19 for the frontend UI
+- Vite for local development and production builds
+- React Router for client-side routes
+- Node.js for API route runtime
+- Vercel Functions for serverless backend endpoints
+- MongoDB Atlas for the database
+- MongoDB Node.js driver for database access
+- Resend for contact/newsletter/callback email delivery
+- libphonenumber-js for country-aware phone formatting and validation
+- Google Tag Manager for tag orchestration
+- GA4 for analytics reporting
+- Google Ads-style conversion event practice
+- Browser `localStorage` for consent and campaign parameter persistence
+- Browser `dataLayer` for analytics event transport
+- HTTP-only cookies for auth sessions
+- Web Crypto / Node crypto APIs for password hashing and session signing
+- Vitest for unit/integration tests
+- Testing Library and user-event for React interaction tests
+- jsdom for browser-like test environment
+- ESLint for code quality checks
 
 ## Routes
 
@@ -43,6 +53,20 @@ The app is intentionally small, but it behaves like a real tracking playground: 
 /thank-you    Form success page
 /privacy      Privacy/consent information
 ```
+
+## Admin-Only Features
+
+The first registered user is created as an admin with `admin_status: 1`. Later users are basic accounts with `admin_status: 0`.
+
+Admin users can access extra practice/testing tools:
+
+- Analytics debug panel
+- `debug_test_event` test button
+- simulated form conversion/error buttons
+- random test data buttons on forms
+- simulated submission failure checkbox
+
+Basic users and public visitors can still use the real site flows, but they do not see the testing controls.
 
 ## Analytics Events
 
