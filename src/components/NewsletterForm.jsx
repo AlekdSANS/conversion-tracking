@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFormTracking } from '../hooks/useFormTracking'
+import { useIsAdmin } from '../hooks/useIsAdmin'
 import {
   trackFormError,
   trackFormSubmit,
   trackFormSuccess,
 } from '../utils/analytics'
+import { getEmailFeedback, isEmailFeedbackBlocking } from '../utils/emailValidation'
 import { sendFormEmail } from '../utils/emailForms'
 import FormStatus from './FormStatus'
 
@@ -27,11 +29,10 @@ function getRandomItem(items) {
 
 function validateNewsletterForm(values) {
   const errors = {}
+  const emailFeedback = getEmailFeedback(values.email)
 
-  if (!values.email.trim()) {
-    errors.email = 'Email is required.'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-    errors.email = 'Enter a valid email address.'
+  if (isEmailFeedbackBlocking(emailFeedback)) {
+    errors.email = emailFeedback.message
   }
 
   if (!values.consent) {
@@ -50,6 +51,9 @@ function NewsletterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
   const { trackFirstInteraction } = useFormTracking(formName, formLocation)
+  const isAdmin = useIsAdmin()
+  const emailFeedback = getEmailFeedback(values.email, { required: false })
+  const showEmailFeedback = values.email.trim() && !errors.email
 
   function updateValue(event) {
     const { checked, name, type, value } = event.target
@@ -140,6 +144,11 @@ function NewsletterForm() {
             {errors.email}
           </p>
         )}
+        {showEmailFeedback && (
+          <p className={`${emailFeedback.type}-message`} id="newsletter-email-feedback">
+            {emailFeedback.message}
+          </p>
+        )}
       </div>
 
       <label className="checkbox-field">
@@ -159,23 +168,27 @@ function NewsletterForm() {
         </p>
       )}
 
-      <label className="checkbox-field">
-        <input
-          name="simulateFailure"
-          type="checkbox"
-          checked={values.simulateFailure}
-          onChange={updateValue}
-        />
-        Simulate submission failure
-      </label>
+      {isAdmin && (
+        <label className="checkbox-field">
+          <input
+            name="simulateFailure"
+            type="checkbox"
+            checked={values.simulateFailure}
+            onChange={updateValue}
+          />
+          Simulate submission failure
+        </label>
+      )}
 
       <div className="form-actions">
         <button className="primary-button" type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Submitting...' : 'Sign up'}
         </button>
-        <button className="secondary-button" type="button" onClick={randomizeForm}>
-          Fill with random test data
-        </button>
+        {isAdmin && (
+          <button className="secondary-button" type="button" onClick={randomizeForm}>
+            Fill with random test data
+          </button>
+        )}
       </div>
 
       <FormStatus errorMessage={statusMessage} />

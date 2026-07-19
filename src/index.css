@@ -486,6 +486,7 @@ label,
 }
 
 input,
+select,
 textarea {
 	width: 100%;
 	border: 1px solid var(--border);
@@ -496,6 +497,7 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus {
 	border-color: var(--accent);
 	outline: none;
@@ -525,6 +527,17 @@ textarea {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
+}
+
+.phone-field-grid {
+	display: grid;
+	grid-template-columns: minmax(180px, 0.9fr) minmax(180px, 1.4fr);
+	gap: 10px;
+}
+
+.phone-field-grid select,
+.phone-field-grid input {
+	min-width: 0;
 }
 
 .primary-button,
@@ -562,7 +575,8 @@ textarea {
 }
 
 .error-message,
-.success-message {
+.success-message,
+.warning-message {
 	margin: 0;
 	line-height: 1.45;
 }
@@ -573,6 +587,11 @@ textarea {
 
 .success-message {
 	color: var(--success);
+	font-weight: 800;
+}
+
+.warning-message {
+	color: #8a5a00;
 	font-weight: 800;
 }
 
@@ -705,7 +724,8 @@ pre {
 	}
 
 	.page-grid,
-	.debug-grid {
+	.debug-grid,
+	.phone-field-grid {
 		grid-template-columns: 1fr;
 	}
 

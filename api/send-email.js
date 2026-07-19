@@ -56,12 +56,16 @@ function normalizeSender(sender) {
 function getPublicEmailError(error) {
   const message = String(error?.message || error?.error || '').toLowerCase()
 
-  if (message.includes('domain') || message.includes('sender')) {
-    return 'Email sender is not verified. Use onboarding@resend.dev or verify a domain in Resend.'
+  if (
+    message.includes('testing emails') ||
+    message.includes('own email address') ||
+    message.includes('recipient')
+  ) {
+    return 'Resend test mode can only send to your Resend account email. Change CONTACT_TO_EMAIL or verify a domain.'
   }
 
-  if (message.includes('recipient') || message.includes('testing emails')) {
-    return 'Resend test mode can only send to an allowed recipient. Check CONTACT_TO_EMAIL.'
+  if (message.includes('domain') || message.includes('sender')) {
+    return 'Email sender is not verified. Use onboarding@resend.dev or verify a domain in Resend.'
   }
 
   if (message.includes('api key') || message.includes('unauthorized')) {

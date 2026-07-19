@@ -1,40 +1,57 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFormTracking } from '../hooks/useFormTracking'
+import { useIsAdmin } from '../hooks/useIsAdmin'
 import {
   trackFormError,
   trackFormSubmit,
   trackFormSuccess,
 } from '../utils/analytics'
+import { getEmailFeedback, isEmailFeedbackBlocking } from '../utils/emailValidation'
 import { sendFormEmail } from '../utils/emailForms'
+import {
+  DEFAULT_PHONE_COUNTRY,
+  PHONE_ALLOWED_PATTERN,
+  PHONE_COUNTRIES,
+  applyCountryDialCode,
+  cleanPhoneValue,
+  formatPhoneInput,
+  getDialCodePrefix,
+  getPhoneFeedback,
+  getPhonePlaceholder,
+  isPhoneFeedbackBlocking,
+  normalizePhoneNumber,
+} from '../utils/phoneValidation'
 import FormStatus from './FormStatus'
 
 const initialValues = {
   fullName: '',
   email: '',
+  phoneCountry: DEFAULT_PHONE_COUNTRY,
   phone: '',
   message: '',
   simulateFailure: false,
 }
 
-const PHONE_ALLOWED_PATTERN = /^[0-9+\-\s()]*$/
-
 const randomContacts = [
   {
     fullName: 'Alex Morgan',
     email: 'alex.test@example.com',
+    phoneCountry: 'PL',
     phone: '+48 501 234 567',
     message: 'I would like to test the main contact form.',
   },
   {
     fullName: 'Jamie Taylor',
     email: 'jamie.test@example.com',
+    phoneCountry: 'US',
     phone: '+1 (555) 123-0199',
     message: 'Please send me more information about analytics tracking.',
   },
   {
     fullName: 'Casey Novak',
     email: 'casey.test@example.com',
+    phoneCountry: 'GB',
     phone: '+44 7700 900123',
     message: 'This is a simulated conversion tracking test.',
   },
@@ -44,27 +61,21 @@ function getRandomItem(items) {
   return items[Math.floor(Math.random() * items.length)]
 }
 
-function cleanPhoneValue(value) {
-  return value.replace(/[^0-9+\-\s()]/g, '')
-}
-
 function validateContactForm(values) {
   const errors = {}
+  const emailFeedback = getEmailFeedback(values.email)
+  const phoneFeedback = getPhoneFeedback(values.phone, values.phoneCountry)
 
   if (!values.fullName.trim()) {
     errors.fullName = 'Full name is required.'
   }
 
-  if (!values.email.trim()) {
-    errors.email = 'Email is required.'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-    errors.email = 'Enter a valid email address.'
+  if (isEmailFeedbackBlocking(emailFeedback)) {
+    errors.email = emailFeedback.message
   }
 
-  if (!values.phone.trim()) {
-    errors.phone = 'Phone number is required.'
-  } else if (!/^[0-9+\-\s()]{7,}$/.test(values.phone)) {
-    errors.phone = 'Enter a valid phone number.'
+  if (isPhoneFeedbackBlocking(phoneFeedback)) {
+    errors.phone = phoneFeedback.message
   }
 
   if (!values.message.trim()) {
@@ -85,6 +96,13 @@ function ContactForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
   const { trackFirstInteraction } = useFormTracking(formName, formLocation)
+  const isAdmin = useIsAdmin()
+  const emailFeedback = getEmailFeedback(values.email, { required: false })
+  const showEmailFeedback = values.email.trim() && !errors.email
+  const phoneFeedback = getPhoneFeedback(values.phone, values.phoneCountry, {
+    required: false,
+  })
+  const showPhoneFeedback = values.phone.trim() && !errors.phone && phoneFeedback.type !== 'idle'
 
   function updateValue(event) {
     const { checked, name, type, value } = event.target
@@ -95,10 +113,33 @@ function ContactForm({
         type === 'checkbox'
           ? checked
           : name === 'phone'
-            ? cleanPhoneValue(value)
+            ? formatPhoneInput(value, currentValues.phoneCountry)
             : value,
     }))
     setErrors((currentErrors) => ({ ...currentErrors, [name]: '' }))
+  }
+
+  function handlePhoneFocus() {
+    trackFirstInteraction()
+    setValues((currentValues) => ({
+      ...currentValues,
+      phone: currentValues.phone || getDialCodePrefix(currentValues.phoneCountry),
+    }))
+  }
+
+  function updatePhoneCountry(event) {
+    const nextCountry = event.target.value
+    trackFirstInteraction()
+    setValues((currentValues) => ({
+      ...currentValues,
+      phoneCountry: nextCountry,
+      phone: applyCountryDialCode(
+        currentValues.phone,
+        nextCountry,
+        currentValues.phoneCountry,
+      ),
+    }))
+    setErrors((currentErrors) => ({ ...currentErrors, phone: '' }))
   }
 
   function handlePhoneBeforeInput(event) {
@@ -114,7 +155,7 @@ function ContactForm({
       const cleanedPhone = cleanPhoneValue(pastedText)
       setValues((currentValues) => ({
         ...currentValues,
-        phone: cleanedPhone,
+        phone: formatPhoneInput(cleanedPhone, currentValues.phoneCountry),
       }))
       setErrors((currentErrors) => ({ ...currentErrors, phone: '' }))
     }
@@ -159,7 +200,7 @@ function ContactForm({
       await sendFormEmail('contact', {
         fullName: values.fullName,
         email: values.email,
-        phone: values.phone,
+        phone: normalizePhoneNumber(values.phone, values.phoneCountry),
         message: values.message,
         formName,
         formLocation,
@@ -222,28 +263,64 @@ function ContactForm({
             {errors.email}
           </p>
         )}
+        {showEmailFeedback && (
+          <p
+            className={`${emailFeedback.type}-message`}
+            id={`${formName}-email-feedback`}
+          >
+            {emailFeedback.message}
+          </p>
+        )}
       </div>
 
       <div className="field">
         <label htmlFor={`${formName}-phone`}>Phone number</label>
-        <input
-          id={`${formName}-phone`}
-          name="phone"
-          type="tel"
-          value={values.phone}
-          placeholder="+48 501 234 567"
-          onChange={updateValue}
-          onBeforeInput={handlePhoneBeforeInput}
-          onPaste={handlePhonePaste}
-          onFocus={trackFirstInteraction}
-          inputMode="tel"
-          aria-invalid={Boolean(errors.phone)}
-          aria-describedby={errors.phone ? `${formName}-phone-error` : undefined}
-          autoComplete="tel"
-        />
+        <div className="phone-field-grid">
+          <select
+            aria-label="Phone country"
+            name="phoneCountry"
+            value={values.phoneCountry}
+            onChange={updatePhoneCountry}
+          >
+            {PHONE_COUNTRIES.map((country) => (
+              <option key={country.code} value={country.code}>
+                {country.label} ({getDialCodePrefix(country.code)})
+              </option>
+            ))}
+          </select>
+          <input
+            id={`${formName}-phone`}
+            name="phone"
+            type="tel"
+            value={values.phone}
+            placeholder={getPhonePlaceholder(values.phoneCountry)}
+            onChange={updateValue}
+            onBeforeInput={handlePhoneBeforeInput}
+            onPaste={handlePhonePaste}
+            onFocus={handlePhoneFocus}
+            inputMode="tel"
+            aria-invalid={Boolean(errors.phone || phoneFeedback.type === 'error')}
+            aria-describedby={
+              errors.phone
+                ? `${formName}-phone-error`
+                : showPhoneFeedback
+                  ? `${formName}-phone-feedback`
+                  : undefined
+            }
+            autoComplete="tel"
+          />
+        </div>
         {errors.phone && (
           <p className="error-message" id={`${formName}-phone-error`}>
             {errors.phone}
+          </p>
+        )}
+        {showPhoneFeedback && (
+          <p
+            className={`${phoneFeedback.type}-message`}
+            id={`${formName}-phone-feedback`}
+          >
+            {phoneFeedback.message}
           </p>
         )}
       </div>
@@ -268,23 +345,27 @@ function ContactForm({
         )}
       </div>
 
-      <label className="checkbox-field">
-        <input
-          name="simulateFailure"
-          type="checkbox"
-          checked={values.simulateFailure}
-          onChange={updateValue}
-        />
-        Simulate submission failure
-      </label>
+      {isAdmin && (
+        <label className="checkbox-field">
+          <input
+            name="simulateFailure"
+            type="checkbox"
+            checked={values.simulateFailure}
+            onChange={updateValue}
+          />
+          Simulate submission failure
+        </label>
+      )}
 
       <div className="form-actions">
         <button className="primary-button" type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Submitting...' : 'Submit form'}
         </button>
-        <button className="secondary-button" type="button" onClick={randomizeForm}>
-          Fill with random test data
-        </button>
+        {isAdmin && (
+          <button className="secondary-button" type="button" onClick={randomizeForm}>
+            Fill with random test data
+          </button>
+        )}
       </div>
 
       <FormStatus errorMessage={statusMessage} />

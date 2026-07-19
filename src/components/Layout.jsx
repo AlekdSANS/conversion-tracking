@@ -84,7 +84,7 @@ function Layout() {
       </header>
 
       <main className="page-shell">
-        <Outlet />
+        <Outlet context={{ user }} />
       </main>
 
       <footer className="site-footer">
