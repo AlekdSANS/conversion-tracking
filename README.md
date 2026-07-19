@@ -20,26 +20,26 @@ The app is intentionally small, but it behaves like a real tracking playground: 
 
 ## Tech Stack
 
-- React 19 for the frontend UI
-- Vite for local development and production builds
-- React Router for client-side routes
-- Node.js for API route runtime
-- Vercel Functions for serverless backend endpoints
-- MongoDB Atlas for the database
-- MongoDB Node.js driver for database access
-- Resend for contact/newsletter/callback email delivery
-- libphonenumber-js for country-aware phone formatting and validation
-- Google Tag Manager for tag orchestration
-- GA4 for analytics reporting
-- Google Ads-style conversion event practice
-- Browser `localStorage` for consent and campaign parameter persistence
-- Browser `dataLayer` for analytics event transport
-- HTTP-only cookies for auth sessions
-- Web Crypto / Node crypto APIs for password hashing and session signing
-- Vitest for unit/integration tests
-- Testing Library and user-event for React interaction tests
-- jsdom for browser-like test environment
-- ESLint for code quality checks
+- **React 19** for the frontend UI
+- **Vite** for local development and production builds
+- **React Router** for client-side routes
+- **Node.js** for API route runtime
+- **Vercel Functions** for serverless backend endpoints
+- **MongoDB Atlas** for the database
+- **MongoDB Node.js driver** for database access
+- **Resend** for contact/newsletter/callback email delivery
+- **libphonenumber-js** for country-aware phone formatting and validation
+- **Google Tag Manager** for tag orchestration
+- **GA4** for analytics reporting
+- **Google Ads-style conversions** for conversion event practice
+- **Browser `localStorage`** for consent and campaign parameter persistence
+- **Browser `dataLayer`** for analytics event transport
+- **HTTP-only cookies** for auth sessions
+- **Web Crypto / Node crypto APIs** for password hashing and session signing
+- **Vitest** for unit/integration tests
+- **Testing Library and user-event** for React interaction tests
+- **jsdom** for browser-like test environment
+- **ESLint** for code quality checks
 
 ## Routes
 
