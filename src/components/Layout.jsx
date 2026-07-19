@@ -17,6 +17,7 @@ const navItems = [
 function Layout() {
   const [showConsentSettings, setShowConsentSettings] = useState(false)
   const [user, setUser] = useState(null)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -69,13 +70,30 @@ function Layout() {
         <a className="site-title" href="/">
           Tracking Practice
         </a>
-        <nav aria-label="Main navigation">
+        <button
+          type="button"
+          className="menu-toggle"
+          aria-expanded={isMenuOpen}
+          aria-controls="main-navigation"
+          aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          onClick={() => setIsMenuOpen((currentValue) => !currentValue)}
+        >
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+        </button>
+        <nav
+          id="main-navigation"
+          className={isMenuOpen ? 'is-open' : undefined}
+          aria-label="Main navigation"
+        >
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) => (isActive ? 'active' : undefined)}
               end={item.to === '/'}
+              onClick={() => setIsMenuOpen(false)}
             >
               {item.label}
             </NavLink>
